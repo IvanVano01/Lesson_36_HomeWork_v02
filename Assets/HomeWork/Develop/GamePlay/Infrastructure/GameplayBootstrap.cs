@@ -10,10 +10,10 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
     {
         private DIContainer _container;
 
-        private IGameMode _gameMode;
+        private SceneSwitcher _sceneSwitcher;
+        private GameController _gameController;        
 
         private bool _isRuning;
-        private int _currentGameMode;
 
         public IEnumerator Run(DIContainer container, GameplayInputArgs gameplayInputArgs)
         {
@@ -21,53 +21,29 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
 
             ProcessRegistrations();
 
-            Debug.Log($"Подружаем ресурсы для режима игры под номером: {gameplayInputArgs.GameMode}");
-            //Debug.Log("Создаём персонажа");
+            Debug.Log($"Подружаем ресурсы для режима игры под номером: {gameplayInputArgs.GameMode}"); 
+            GameModeFactory gameModeFactory = new GameModeFactory();
+
             Debug.Log("Сцена готова, можно начинать игру! ");
 
-
             yield return new WaitForSeconds(1f);// симулируем ожидание
-
-            _currentGameMode = gameplayInputArgs.GameMode;
-            _gameMode = SwitchGameMode(_currentGameMode);
+            
+            _gameController = new GameController(_sceneSwitcher,gameModeFactory, gameplayInputArgs);
             _isRuning = true;
         }
 
         private void ProcessRegistrations()
         {
             // регаем всё что нужно для этой сцены
+            _sceneSwitcher = _container.Resolve<SceneSwitcher>();
         }
 
         private void Update()
         {
             if (_isRuning == false)
-                return;
+                return;            
 
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                if (_gameMode.IsWin && _gameMode.IsGameOver)
-                    _container.Resolve<SceneSwitcher>().ProcessSwitchSceneFor(new OutputGameplayArgs(new MainMenuInputArgs()));
-
-                if (_gameMode.IsWin == false && _gameMode.IsGameOver)
-                    _container.Resolve<SceneSwitcher>().ProcessSwitchSceneFor(new OutputGameplayArgs(new GameplayInputArgs(_currentGameMode)));
-            }
-
-            _gameMode.Update();
-        }
-
-        private IGameMode SwitchGameMode(int gameLevel)
-        {
-            switch (gameLevel)
-            {
-                case 1:
-                    IGameMode gameMode1 = new GameEnterNumbers();                    
-                    return gameMode1;
-                case 2:
-                    IGameMode gameMode2 = new GameEnterLetters();
-                    return gameMode2;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(gameLevel));
-            }
-        }
+            _gameController.Update();
+        }        
     }
 }

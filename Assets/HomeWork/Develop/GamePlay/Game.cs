@@ -5,8 +5,11 @@ using UnityEngine;
 
 namespace Assets.HomeWork.Develop.GamePlay
 {
-    public class GameEnterLetters : IGameMode
+    public class Game : IGame
     {
+        public event Action Won;
+        public event Action Lost;        
+
         private List<char> _randomChairList;
         private List<char> _сhairList;
         private List<char> _inputCharKeys;
@@ -15,21 +18,15 @@ namespace Assets.HomeWork.Develop.GamePlay
 
         private bool _isRunning;
 
-        public bool IsGameOver { get; private set; }
-        public bool IsWin { get; private set; }
-
-        public GameEnterLetters()
+        public Game(GameModeID gameModeID)
         {
             _inputCharKeys = new();
             _randomChairList = new List<char>();
             _сhairList = new List<char>();
-            _сhairList.AddRange(new[]{
-                'a','b', 'c', 'd','e','f','g','h','j','k','l'
-            });
+
+            _сhairList = InintGameMode(gameModeID);
 
             _isRunning = true;
-            IsWin = false;
-            IsGameOver = false;
 
             ToGenerateRandomCharArray();
             ToDisplayOnScreen();
@@ -47,20 +44,41 @@ namespace Assets.HomeWork.Develop.GamePlay
         {
             if (_inputCharKeys.SequenceEqual(_randomChairList))
             {
-                Debug.Log(" Ура вы победили!");
-                Debug.Log(" Нажмите пробел что бы перейти в Главное меню ");
                 _isRunning = false;
-                IsGameOver = true;
-                IsWin = true;
-                // переходим с геймплэй на сцену Главного меню
+                Won?.Invoke();                
             }
             else
             {
-                Debug.Log(" Вы попроиграли! + \n  Нажмите пробел и попробуйте ещё раз ");
                 _isRunning = false;
-                IsGameOver = true;
-                IsWin = false;
-                // переходим с геймплэй на гемплэй
+                Lost?.Invoke();
+            }
+        }
+
+        private List<char> InintGameMode(GameModeID gameModeID)
+        {
+            switch (gameModeID)
+            {
+                case GameModeID.EnterNumbers:
+
+                    List<char> charsListNumbers = new List<char>();
+
+                    charsListNumbers.AddRange(new[]{
+                        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
+                    });
+
+                    return charsListNumbers;
+
+                case GameModeID.EnterLetters:
+
+                    List<char> charsListLetters = new List<char>();
+
+                    charsListLetters.AddRange(new[]{
+                        'a','b', 'c', 'd','e','f','g','h','j','k','l'
+                    });
+                    return charsListLetters;
+
+                default:
+                    throw new ArgumentOutOfRangeException($" указанный режим не найден {nameof(gameModeID)}");
             }
         }
 
@@ -77,7 +95,7 @@ namespace Assets.HomeWork.Develop.GamePlay
                 if (char.TryParse(inputKey, out char result))
                 {
                     char1 = result;
-                    Debug.Log(" Вы ввели букву " + char1);
+                    Debug.Log(" Вы ввели символ " + char1);
                     _inputCharKeys.Add(char1);
 
                     if (_inputCharKeys.Count == _randomChairList.Count)
@@ -85,7 +103,7 @@ namespace Assets.HomeWork.Develop.GamePlay
                         ToProcessingGameResult();
                         return;
                     }
-                    Debug.Log(" Введите следущую букву");
+                    Debug.Log(" Введите следущий символ");
 
                     return;
                 }
