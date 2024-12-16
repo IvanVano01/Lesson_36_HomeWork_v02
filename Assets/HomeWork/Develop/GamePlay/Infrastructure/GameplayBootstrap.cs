@@ -22,10 +22,11 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
             ProcessRegistrations();
 
             Debug.Log($"Подружаем ресурсы для режима игры под номером: {gameplayInputArgs.GameMode}"); 
+
+            _sceneSwitcher = _container.Resolve<SceneSwitcher>();
             GameModeFactory gameModeFactory = new GameModeFactory();
-
+           
             Debug.Log("Сцена готова, можно начинать игру! ");
-
             yield return new WaitForSeconds(1f);// симулируем ожидание
             
             _gameController = new GameController(_sceneSwitcher,gameModeFactory, gameplayInputArgs);
@@ -35,7 +36,8 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
         private void ProcessRegistrations()
         {
             // регаем всё что нужно для этой сцены
-            _sceneSwitcher = _container.Resolve<SceneSwitcher>();
+
+            _container.Initialize();// для создания объектов "NonLazy"
         }
 
         private void Update()

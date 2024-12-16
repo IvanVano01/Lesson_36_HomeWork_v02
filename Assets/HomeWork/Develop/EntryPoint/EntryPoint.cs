@@ -1,8 +1,11 @@
 ﻿using Assets.HomeWork.Develop.CommonServices.AssetManagment;
 using Assets.HomeWork.Develop.CommonServices.CoroutinePerformer;
+using Assets.HomeWork.Develop.CommonServices.DataManagment;
+using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
 using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.LoadingScreen;
 using Assets.HomeWork.Develop.CommonServices.SceneManagment;
+using Assets.HomeWork.Develop.CommonServices.Wallet;
 using System;
 using UnityEngine;
 
@@ -27,6 +30,15 @@ namespace Assets.HomeWork.Develop.EntryPoint
             RegisterSceneLoader(projectContainer);// регаем загрузчик сцен
             RegisterSceneSceneSwitcher(projectContainer);// регаем сервис перехода из сцены в другую
 
+            RegisterSaveLoadService(projectContainer);// регаем сервис сохранения и загрузки данных
+            RegisterPlayerDataProvider(projectContainer);// регаем сервис управления данными Player(игрока) 
+
+            RegisterWalletService(projectContainer);// регаем сервис кошелька
+
+
+            projectContainer.Initialize();// инициализируем, что бы создать регистрации которые должны быть созданны ещё до первого запроса
+
+
             // когда все глобальные регистрации прошли
             projectContainer.Resolve<ICoroutinePerformer>().StartPerform(_gameBootstrap.Run(projectContainer));//в "_gameBootstrap" через сервис корутины запустим Run и передадим
 
@@ -37,6 +49,15 @@ namespace Assets.HomeWork.Develop.EntryPoint
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = 144;
         }
+
+        private void RegisterPlayerDataProvider(DIContainer container)
+            => container.RegisterAsSingle(c => new PlayerDataProvider(c.Resolve<ISaveLoadService>()));
+
+        private void RegisterWalletService(DIContainer container)
+       => container.RegisterAsSingle( c => new WalletService(c.Resolve<PlayerDataProvider>())).NonLazy();// помечаем как "NonLazy"
+
+        private void RegisterSaveLoadService(DIContainer container)
+            => container.RegisterAsSingle<ISaveLoadService>(c => new SaveLoadService(new JsonSerializer(), new localDataRepository()));
 
         private void RegisterSceneSceneSwitcher(DIContainer container)
         {

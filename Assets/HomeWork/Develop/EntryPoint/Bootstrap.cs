@@ -1,4 +1,5 @@
-﻿using Assets.HomeWork.Develop.CommonServices.DI;
+﻿using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
+using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.LoadingScreen;
 using Assets.HomeWork.Develop.CommonServices.SceneManagment;
 using System.Collections;
@@ -15,9 +16,11 @@ namespace Assets.HomeWork.Develop.EntryPoint
 
             loadingCurtain.Show(); //Включаем загрузочную штору 
 
-            Debug.Log("Начинается инициализация сервисов");            
+            Debug.Log("Начинается инициализация сервисов");
 
             // Инициализация всех сервисов(конфиги, инит сервисы рекламы/ аналитики)
+
+            container.Resolve<PlayerDataProvider>().Load();// подгружаем данные для игрока
 
             yield return new WaitForSeconds(1.5f);// заглушка, имитирует инициализацию сервисов которые выше
 

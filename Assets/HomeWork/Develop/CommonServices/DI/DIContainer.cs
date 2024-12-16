@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Assets.HomeWork.Develop.CommonServices.DI
 {
-    public class DIContainer
+    public class DIContainer : IDisposable
     {
         private readonly Dictionary<Type, Registration> _container = new(); // сам контейнер ввиде словаря
 
@@ -21,7 +21,7 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
             _parent = parent;
         }
 
-        public void RegisterAsSingle<T>(Func<DIContainer, T> creator) // регаем объект в единственном экземпляре
+        public Registration RegisterAsSingle<T>(Func<DIContainer, T> creator) // регаем объект в единственном экземпляре
         {
             if (_container.ContainsKey(typeof(T)))
                 throw new InvalidOperationException($" {nameof(T)} Already register!");
@@ -30,6 +30,8 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
             
             _container.Add(typeof(T), registration);// добавляем регистрацию в контейнер
             //_container[typeof(T)] = registration;// вариант добавления в словарь
+
+            return registration;
         } 
 
         public T Resolve<T>()
@@ -55,6 +57,29 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
             throw new InvalidOperationException($" Registration for {typeof(T)} not exist");
         }
 
+        public void Initialize() // метод инициализации контейнера
+        {
+            foreach(Registration registration in _container.Values)// проходимся по каждой регистрации
+            {
+                if (registration.Instance == null && registration.IsNonLazy)// если регистрация помечена маркером "IsNonLazy"
+                    registration.Instance = registration.Creator(this);     // то создаём эту регистрации, сразу и засовываем в поле "Instance"
+                
+                if(registration.Instance != null)
+                    if(registration.Instance is IInitializable initializable) // проверяем, помечена ли регистрация интерфейсом "IInitializable"
+                        initializable.Initialise();                           
+            }            
+        }
+
+        public void Dispose() // для отписки при переходе в другую сцену и т.д
+        {
+            foreach (Registration registration in _container.Values)// проходимся по каждой регистрации
+            {
+                if (registration.Instance != null)
+                    if (registration.Instance is IDisposable disposable) // проверяем, помечена ли регистрация интерфейсом "IDisposable"
+                        disposable.Dispose();
+            }
+        }
+
         private T CreateFrom<T>(Registration registration)// метод будет принимать созданную регистрацию из контейнера и записывать в поле "Instance" и возвращать её
         {
             if (registration.Instance == null && registration.Creator != null)// проверяем что мы ещё не создавали такую регистрацию
@@ -69,6 +94,8 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
 
             public object Instance { get; set; }
 
+            public bool IsNonLazy { get; private set; } // маркер ленивого создания объекта, т.е ещё до первого вызова объект будет создан
+
             public Registration(object instance)
             {
                 Instance = instance;
@@ -78,6 +105,8 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
             {
                 Creator = creator;
             }
+
+            public void NonLazy() => IsNonLazy = true;
         }
     }
 }

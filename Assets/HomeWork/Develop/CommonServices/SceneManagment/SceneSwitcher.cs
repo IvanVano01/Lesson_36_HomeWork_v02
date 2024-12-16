@@ -98,6 +98,8 @@ namespace Assets.HomeWork.Develop.CommonServices.SceneManagment
         {
             _loadingCurtain.Show();// показываем штору
 
+            _currentSceneContainer?.Dispose();// делаем отписку при переходе в другую сцену
+
             yield return _sceneLoader.LoadAsync(SceneID.Empty);// сначала переходим на пустую сцену
             yield return _sceneLoader.LoadAsync(SceneID.MainMenu);// переходим на сцену главного меню
 
@@ -115,6 +117,7 @@ namespace Assets.HomeWork.Develop.CommonServices.SceneManagment
         private IEnumerator ProcessSwitchToGameplayScene(GameplayInputArgs gameplayInputArgs)// для перехода на сцену геймплэя
         {
             _loadingCurtain.Show();
+            _currentSceneContainer?.Dispose();// делаем отписку при переходе в другую сцену
 
             yield return _sceneLoader.LoadAsync(SceneID.Empty);// сначала переходим на пустую сцену
             yield return _sceneLoader.LoadAsync(SceneID.GamePlay);// переходим на сцену геймплэя            
