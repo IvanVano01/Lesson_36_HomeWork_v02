@@ -23,7 +23,7 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
 
         public Registration RegisterAsSingle<T>(Func<DIContainer, T> creator) // регаем объект в единственном экземпляре
         {
-            if (_container.ContainsKey(typeof(T)))
+            if (IsAlreadyRegister<T>())// проверка есть ли уже такая регистрация в контейнере
                 throw new InvalidOperationException($" {nameof(T)} Already register!");
 
             Registration registration = new Registration(container => creator(container));// создаём регистрацию 
@@ -33,6 +33,17 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
 
             return registration;
         } 
+
+        public bool IsAlreadyRegister<T>()
+        {
+            if(_container.ContainsKey(typeof(T)))// проверка в локальном контейнере, если такая регистрация уже есть
+                return true;
+
+            if(_parent != null)
+                return _parent.IsAlreadyRegister<T>();// проверяем в глобальном контейнере
+
+            return false;
+        }
 
         public T Resolve<T>()
         {

@@ -1,4 +1,5 @@
 ﻿using Assets.HomeWork.Develop.CommonServices.AssetManagment;
+using Assets.HomeWork.Develop.CommonServices.ConfigsManagment;
 using Assets.HomeWork.Develop.CommonServices.CoroutinePerformer;
 using Assets.HomeWork.Develop.CommonServices.DataManagment;
 using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
@@ -6,7 +7,6 @@ using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.LoadingScreen;
 using Assets.HomeWork.Develop.CommonServices.SceneManagment;
 using Assets.HomeWork.Develop.CommonServices.Wallet;
-using System;
 using UnityEngine;
 
 namespace Assets.HomeWork.Develop.EntryPoint
@@ -34,6 +34,7 @@ namespace Assets.HomeWork.Develop.EntryPoint
             RegisterPlayerDataProvider(projectContainer);// регаем сервис управления данными Player(игрока) 
 
             RegisterWalletService(projectContainer);// регаем сервис кошелька
+            RegisterConfigProviderService(projectContainer);// регаем загрузку конфигов
 
 
             projectContainer.Initialize();// инициализируем, что бы создать регистрации которые должны быть созданны ещё до первого запроса
@@ -42,7 +43,7 @@ namespace Assets.HomeWork.Develop.EntryPoint
             // когда все глобальные регистрации прошли
             projectContainer.Resolve<ICoroutinePerformer>().StartPerform(_gameBootstrap.Run(projectContainer));//в "_gameBootstrap" через сервис корутины запустим Run и передадим
 
-        }
+        }        
 
         private void SetupAppSettings()
         {
@@ -50,8 +51,11 @@ namespace Assets.HomeWork.Develop.EntryPoint
             Application.targetFrameRate = 144;
         }
 
+        private void RegisterConfigProviderService(DIContainer container)
+        => container.RegisterAsSingle(c => new ConfigsProviderService(c.Resolve<ResourcesAssetLoader>()));
+
         private void RegisterPlayerDataProvider(DIContainer container)
-            => container.RegisterAsSingle(c => new PlayerDataProvider(c.Resolve<ISaveLoadService>()));
+            => container.RegisterAsSingle(c => new PlayerDataProvider(c.Resolve<ISaveLoadService>(), c.Resolve<ConfigsProviderService>()));
 
         private void RegisterWalletService(DIContainer container)
        => container.RegisterAsSingle( c => new WalletService(c.Resolve<PlayerDataProvider>())).NonLazy();// помечаем как "NonLazy"

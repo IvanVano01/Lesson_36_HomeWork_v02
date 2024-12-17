@@ -1,4 +1,5 @@
-﻿using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
+﻿using Assets.HomeWork.Develop.CommonServices.ConfigsManagment;
+using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
 using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.LoadingScreen;
 using Assets.HomeWork.Develop.CommonServices.SceneManagment;
@@ -20,6 +21,7 @@ namespace Assets.HomeWork.Develop.EntryPoint
 
             // Инициализация всех сервисов(конфиги, инит сервисы рекламы/ аналитики)
 
+            container.Resolve<ConfigsProviderService>().LoadAll();// подгрузили конфиги
             container.Resolve<PlayerDataProvider>().Load();// подгружаем данные для игрока
 
             yield return new WaitForSeconds(1.5f);// заглушка, имитирует инициализацию сервисов которые выше
