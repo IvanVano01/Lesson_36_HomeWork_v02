@@ -12,20 +12,15 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
             _sceneSwitcher = sceneSwitcher;
         }
 
-        public void ToSelectGameModeView()
+        public string ToSetSelectGameModeDescription()
         {
-            Debug.Log(" Выберите режим игры!");
-            Debug.Log("Для режима цифр, Нажмите клавишу 1 ");
-            Debug.Log("Для режима букв, Нажмите клавишу 2 ");
-        }
+            string description = "Выберите режим игры и нажмите на кнопку ! ";
+            return description;            
+        }        
 
-        public void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-                _sceneSwitcher.ProcessSwitchSceneFor(new OutputMainMenuArgs(new GameplayInputArgs(GameModeID.EnterNumbers)));
-
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-                _sceneSwitcher.ProcessSwitchSceneFor(new OutputMainMenuArgs(new GameplayInputArgs(GameModeID.EnterLetters)));            
-        }
+        public void SetModeNumbers() => _sceneSwitcher.ProcessSwitchSceneFor
+            (new OutputMainMenuArgs(new GameplayInputArgs(GameModeID.EnterNumbers)));
+        public void SetModeLetters() => _sceneSwitcher.ProcessSwitchSceneFor
+            (new OutputMainMenuArgs(new GameplayInputArgs(GameModeID.EnterLetters)));
     }
 }

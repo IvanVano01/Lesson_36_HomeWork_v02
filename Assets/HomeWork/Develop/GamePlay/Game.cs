@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.HomeWork.Develop.CommonServices.GameService;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,44 +9,62 @@ namespace Assets.HomeWork.Develop.GamePlay
     public class Game : IGame
     {
         public event Action Won;
-        public event Action Lost;        
+        public event Action Lost;
+        public event Action<string> SymbolsGenerated;
+
+        private GameService _gameService;        
 
         private List<char> _randomChairList;
-        private List<char> _сhairList;
+        private List<char> _сhairList;      
         private List<char> _inputCharKeys;
 
         private int _maxAmountCharLength = 4;
 
         private bool _isRunning;
 
-        public Game(GameModeID gameModeID)
+        public Game(GameModeID gameModeID, GameService gameService)
         {
-            _inputCharKeys = new();
+            _gameService = gameService;
+           
             _randomChairList = new List<char>();
             _сhairList = new List<char>();
+            _inputCharKeys = new();
 
             _сhairList = InintGameMode(gameModeID);
 
             _isRunning = true;
-
+            
             ToGenerateRandomCharArray();
             ToDisplayOnScreen();
         }
+
+        public string GetSympolList() => string.Join(" ",_randomChairList.ToArray()); // для отображения в UI
 
         public void Update()
         {
             if (_isRunning == false)
                 return;
+           
+        }        
 
-            ToEnterChar();
+        public void ToCheckInputSymbol(string inputSymbols)
+        {
+            _inputCharKeys.Clear();
+            _inputCharKeys.AddRange(inputSymbols);
+           
+
+            if (_inputCharKeys.Count == _randomChairList.Count)
+                ToProcessingGameResult();
+            else
+                Debug.Log("Вы ввели не правильное кол-во символов, попробуйте ещё раз!");
         }
 
         private void ToProcessingGameResult()
-        {
+        {            
             if (_inputCharKeys.SequenceEqual(_randomChairList))
             {
-                _isRunning = false;
-                Won?.Invoke();                
+                _isRunning = false;                
+                Won?.Invoke();
             }
             else
             {
@@ -61,55 +80,29 @@ namespace Assets.HomeWork.Develop.GamePlay
                 case GameModeID.EnterNumbers:
 
                     List<char> charsListNumbers = new List<char>();
+                             
+                    foreach (int number in _gameService.GetNumbers())
+                    {
+                        charsListNumbers.Add(char.Parse(number.ToString()));
+                    }
 
-                    charsListNumbers.AddRange(new[]{
-                        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
-                    });
+                    string Symbols = string.Join(" ", _randomChairList.ToArray());
+                    SymbolsGenerated?.Invoke(Symbols);                    
 
                     return charsListNumbers;
 
                 case GameModeID.EnterLetters:
 
                     List<char> charsListLetters = new List<char>();
+                    
+                    charsListLetters.AddRange(_gameService.GetLetters());
 
-                    charsListLetters.AddRange(new[]{
-                        'a','b', 'c', 'd','e','f','g','h','j','k','l'
-                    });
                     return charsListLetters;
 
                 default:
                     throw new ArgumentOutOfRangeException($" указанный режим не найден {nameof(gameModeID)}");
             }
-        }
-
-        private void ToEnterChar()
-        {
-            if (_inputCharKeys.Count >= _randomChairList.Count)
-                return;
-
-            if (Input.anyKeyDown)
-            {
-                Char char1;
-                string inputKey = Input.inputString;
-
-                if (char.TryParse(inputKey, out char result))
-                {
-                    char1 = result;
-                    Debug.Log(" Вы ввели символ " + char1);
-                    _inputCharKeys.Add(char1);
-
-                    if (_inputCharKeys.Count == _randomChairList.Count)
-                    {
-                        ToProcessingGameResult();
-                        return;
-                    }
-                    Debug.Log(" Введите следущий символ");
-
-                    return;
-                }
-                Debug.Log(" Вы нажали не известную клавишу, попробуйте ещё раз " + Input.inputString);
-            }
-        }
+        }        
 
         private void ToDisplayOnScreen() => Debug.Log(string.Join(" , ", _randomChairList));
 

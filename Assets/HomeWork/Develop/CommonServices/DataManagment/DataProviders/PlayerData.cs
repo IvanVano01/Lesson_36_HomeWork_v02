@@ -8,6 +8,9 @@ namespace Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders
 
     public class PlayerData : ISaveData // данные игрока, которые будем сохранять
     {
-        public Dictionary<CurrencyTypes, int> WalletData;// вкачестве данных будет словарь с валютами
+        public Dictionary<CurrencyTypes, int> WalletData;// в качестве данных будет словарь с валютами
+
+        public int ValueToSpend;
+        public int ValueToAdd;
     }
 }

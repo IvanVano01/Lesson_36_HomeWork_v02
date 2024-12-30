@@ -20,7 +20,9 @@ namespace Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders
         {
             return new PlayerData()
             {
-               WalletData = InitWalletData() // создаём данные для игрока(кошелёк с валютами)
+                WalletData = InitWalletData(), // создаём данные для игрока(кошелёк с валютами)
+                ValueToSpend = _configsProviderService.StartWalletConfig.ValueToSpend,
+                ValueToAdd = _configsProviderService.StartWalletConfig.ValueToAdd
             };
         }
 

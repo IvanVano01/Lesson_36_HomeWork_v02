@@ -2,6 +2,6 @@
 {
     public interface IInitializable// интерфейс для пометки сервисов, которые нужно инициализировать
     {
-        public void Initialise();
+        public void Inintialize();
     }
 }

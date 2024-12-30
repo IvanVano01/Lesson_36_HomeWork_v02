@@ -9,7 +9,9 @@ namespace Assets.HomeWork.Develop.CommonServices.DataManagment
         private static Dictionary<Type, string> Keys = new Dictionary<Type, string>() // словарь для хранения ключей,
                                                                                       // сам ключ будет в формате"string"
         {
-            {typeof(PlayerData), "PlayerData" }// сохранили первый класс с данными
+            {typeof(PlayerData), "PlayerData" }, // сохранили класс с данными для игрока
+            {typeof(GameResultsData), "GameResultsData" },// сохранили класс с данными для записи результата игры
+            {typeof(GameData), "GameData" }                // сохранили класс с данными для геймплэя
         };
 
         public static string GetKeyFor<TData>() where TData : ISaveData //метод получения ключа для запрашиваемого типа данных

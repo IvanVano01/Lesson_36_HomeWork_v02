@@ -1,30 +1,34 @@
-﻿using Assets.HomeWork.Develop.CommonServices.SceneManagment;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Assets.HomeWork.Develop.CommonServices.AccountingOfGameResult;
+using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
+using Assets.HomeWork.Develop.CommonServices.Wallet;
 using UnityEngine;
 
 namespace Assets.HomeWork.Develop.GamePlay
 {
     public class GameController
     {
-        private SceneSwitcher _sceneSwitcher;        
+        private IGame _currentGame;                   
 
-        private IGame _currentGameMode;
-        private GameModeFactory _gameModeFactory;
-        private GameModeID _currentGameModeID;
+        private GameResultsDataProvider _gameResultsDataProvider;
+        private GameResultService _gameResultService;
+        private WalletService _walletService;
+        private PlayerDataProvider _playerDataProvider;
 
-        private bool _isRuning;
-        private bool _isWin;
+        private bool _isRuning;       
         private bool _isGameOver;
 
-        public GameController(SceneSwitcher sceneSwitcher, GameModeFactory gameModeFactory, GameplayInputArgs gameplayInputArgs)
+        public GameController(IGame game,            
+                                   
+            GameResultsDataProvider gameResultsDataProvider, 
+            GameResultService gameResultService, 
+            WalletService walletService, 
+            PlayerDataProvider playerDataProvider)
         {
-            _sceneSwitcher = sceneSwitcher;
-            _gameModeFactory = gameModeFactory;
-            _currentGameModeID = gameplayInputArgs.GameMode;
+            _currentGame = game;
+            _gameResultsDataProvider = gameResultsDataProvider;
+            _gameResultService = gameResultService;
+            _walletService = walletService;
+            _playerDataProvider = playerDataProvider;
 
             StartGame();
         }
@@ -32,75 +36,53 @@ namespace Assets.HomeWork.Develop.GamePlay
         public void Update()
         {
             if (_isRuning == false)
-                return;          
-
+                return;
 
             if (_isGameOver == false)
-                _currentGameMode.Update();
-            else
-                ProcessSelectInputPlayer();
+                _currentGame.Update();            
         }
 
         private void StartGame()
         {
-            SetGameMode(_currentGameModeID);
-
-            _currentGameMode.Won += GameModeWon;
-            _currentGameMode.Lost += GameModeLost;
+            _currentGame.Won += GameModeWon;
+            _currentGame.Lost += GameModeLost;
 
             _isRuning = true;
         }
 
         private void GameModeLost()
         {
-            Debug.Log(" Вы попроиграли! \n  Нажмите пробел и попробуйте ещё раз ");
-            _isGameOver = true;
-            _isWin = false;
+            Debug.Log(" Вы попроиграли! попробуйте ещё раз ");
+
+            _walletService.Spend(CurrencyTypes.Gold);
+            _gameResultService.AddResult(GameResultsTypes.Loss);
+
+            _isGameOver = true;           
+            GameOver();
         }
 
         private void GameModeWon()
         {
             Debug.Log(" Ура вы победили!");
-            Debug.Log(" Нажмите пробел что бы перейти в Главное меню ");
-            _isGameOver = true;
-            _isWin = true;
+           
+            _walletService.Add(CurrencyTypes.Gold);
+            _gameResultService.AddResult(GameResultsTypes.Win);
+
+            _isGameOver = true;           
+            GameOver();
         }
 
         private void GameOver()
         {
+            _playerDataProvider.Save();
+            _gameResultsDataProvider.Save();
             Dispose();
         }
 
         private void Dispose()
         {
-            _currentGameMode.Won -= GameModeWon;
-            _currentGameMode.Lost -= GameModeLost;
-        }
-
-        private void ProcessSelectInputPlayer()
-        {
-            if (_isGameOver == false)
-                return;
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                if (_isWin)
-                {
-                    GameOver();
-                    _sceneSwitcher.ProcessSwitchSceneFor(new OutputGameplayArgs(new MainMenuInputArgs()));
-                }
-
-                if (_isWin == false)
-                {
-                    GameOver();
-                    _sceneSwitcher.ProcessSwitchSceneFor(new OutputGameplayArgs(new GameplayInputArgs(_currentGameModeID)));
-                }
-            }
-        }
-
-        private void SetGameMode(GameModeID gameModeID)
-        {
-            _currentGameMode = _gameModeFactory.GetGameMode(gameModeID);
-        }
+            _currentGame.Won -= GameModeWon;
+            _currentGame.Lost -= GameModeLost;
+        }        
     }
 }

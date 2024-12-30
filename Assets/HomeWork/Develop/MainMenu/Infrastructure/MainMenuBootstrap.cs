@@ -1,8 +1,13 @@
-using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
+using Assets.HomeWork.Develop.CommonServices.AccountingOfGameResult;
+using Assets.HomeWork.Develop.CommonServices.AssetManagment;
 using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.SceneManagment;
 using Assets.HomeWork.Develop.CommonServices.Wallet;
+using Assets.HomeWork.Develop.CommonUI.GameModeSelect;
+using Assets.HomeWork.Develop.CommonUI.GameResult;
+using Assets.HomeWork.Develop.CommonUI.Wallet;
 using Assets.HomeWork.Develop.GamePlay.Infrastructure;
+using Assets.HomeWork.Develop.MainMenu.UI;
 using System.Collections;
 using UnityEngine;
 
@@ -12,10 +17,10 @@ namespace Assets.HomeWork.Develop.MainMenu.Infrastructure
     {
         private DIContainer _container;
 
-        private SceneSwitcher _sceneSwitcher;
-        private GameModeSelector _gameModeSelector;
+        private GameModeSelectorPresenter _gameModePresenter;
 
         private bool _isRegistrationReady;
+
         public IEnumerator Run(DIContainer container, MainMenuInputArgs mainMenuInputArgs)
         {
             _container = container;
@@ -26,41 +31,49 @@ namespace Assets.HomeWork.Develop.MainMenu.Infrastructure
 
             yield return new WaitForSeconds(1f);// симулируем ожидание
 
-            _sceneSwitcher = _container.Resolve<SceneSwitcher>();
+            _gameModePresenter = _container.Resolve<GameModeSelectorPresenter>();
+            _gameModePresenter.Inintialize();
 
-            _gameModeSelector = new GameModeSelector(_sceneSwitcher);
-            _gameModeSelector.ToSelectGameModeView();
-
+            Debug.Log($" Загрузка ресурсов для сцены, заверщена!");
             _isRegistrationReady = true;
         }
 
         private void ProcessRegistrations()
         {
             // Делаем регистрации для сцены гейплэя
+            _container.RegisterAsSingle(c => new WalletPresenterFactory(c));// создаем "WalletPresenterFactory" и передаём туда контейнер
+            _container.RegisterAsSingle(c => new ResultPresentersFactory(c));
+            _container.RegisterAsSingle(c => new GameModeSelectorFactory(c));
+            _container.RegisterAsSingle(c => new ModeSelectorPresenterFactory());
+            _container.RegisterAsSingle(c => new GameResetResultService(c.Resolve<WalletService>(), c.Resolve<GameResultService>()));
 
-            _container.Initialize();// для создания объектов "NonLazy"
+            _container.RegisterAsSingle(c =>
+            {
+                MainMenuUIRoot mainMenuUIRootPrefab = c.Resolve<ResourcesAssetLoader>().LoadResource<MainMenuUIRoot>("MainMenu/UI/MainMenuUIRoot");
+
+                return Instantiate(mainMenuUIRootPrefab);
+            }).NonLazy();
+
+            _container.RegisterAsSingle(c => c.Resolve<WalletPresenterFactory>()
+            .CreateCurrencyPresenter(c.Resolve<MainMenuUIRoot>().CurrencyView, CurrencyTypes.Gold)).NonLazy();// для отображения и обновления валют на протяжении всей жизни сцены
+
+            _container.RegisterAsSingle(c => c.Resolve<ResultPresentersFactory>()
+            .CreateGameResultPresenter
+            (c.Resolve<MainMenuUIRoot>().GameResultView)).NonLazy();  //регаем "GameResultPresenter"
+
+            _container.RegisterAsSingle(c => c.Resolve<ResultPresentersFactory>()
+            .CreateGameResetResultPresenter(c.Resolve<MainMenuUIRoot>().ResetGameResultView, CurrencyTypes.Gold)).NonLazy(); //регаем "GameResetResultPresenter"
+
+            _container.RegisterAsSingle(c => c.Resolve<ModeSelectorPresenterFactory>()
+            .CreateGameModeSelectorPresenter(_container.Resolve<GameModeSelectorFactory>()
+            .CreateGameModeSelector(), _container.Resolve<MainMenuUIRoot>().GameModeSelectorView)); // регаем "GameModeSelectorPresenter"
+
+            _container.Initialize();// для создания объектов "NonLazy"            
         }
 
         private void Update()
-        { //-----------------------------------------------------------------------------//
-            // временно для теста сервиса сохранения и считывания данных
-            if (Input.GetKeyDown(KeyCode.S))// сохраняем данные
-            {
-                _container.Resolve<PlayerDataProvider>().Save();
-                Debug.Log(" Сохранили данные");
-            }
-
-            if(Input.GetKeyDown(KeyCode.F))// тратим валюты
-            {
-                WalletService wallet = _container.Resolve<WalletService>();
-                wallet.Add(CurrencyTypes.Gold, 100);
-                Debug.Log($"Добавили в кошелёк{CurrencyTypes.Gold}" + wallet.GetCurrency(CurrencyTypes.Gold).Value);
-            }
-          //---------------------------------------------------------------------------//
-
-            if (_isRegistrationReady == false)
-                return;
-            _gameModeSelector.Update();
+        {
+            
         }
     }
 }

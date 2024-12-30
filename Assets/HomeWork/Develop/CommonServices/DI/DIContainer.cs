@@ -77,7 +77,7 @@ namespace Assets.HomeWork.Develop.CommonServices.DI
                 
                 if(registration.Instance != null)
                     if(registration.Instance is IInitializable initializable) // проверяем, помечена ли регистрация интерфейсом "IInitializable"
-                        initializable.Initialise();                           
+                        initializable.Inintialize();                           
             }            
         }
 

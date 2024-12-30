@@ -1,4 +1,5 @@
 ﻿using Assets.HomeWork.Develop.CommonServices.CoroutinePerformer;
+using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
 using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.LoadingScreen;
 using Assets.HomeWork.Develop.GamePlay.Infrastructure;
@@ -117,6 +118,8 @@ namespace Assets.HomeWork.Develop.CommonServices.SceneManagment
         private IEnumerator ProcessSwitchToGameplayScene(GameplayInputArgs gameplayInputArgs)// для перехода на сцену геймплэя
         {
             _loadingCurtain.Show();
+            _currentSceneContainer.Resolve<PlayerDataProvider>().Save();
+            _currentSceneContainer.Resolve<GameResultsDataProvider>().Save();
             _currentSceneContainer?.Dispose();// делаем отписку при переходе в другую сцену
 
             yield return _sceneLoader.LoadAsync(SceneID.Empty);// сначала переходим на пустую сцену

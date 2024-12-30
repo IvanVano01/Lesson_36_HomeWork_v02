@@ -10,10 +10,13 @@ namespace Assets.HomeWork.Develop.CommonServices.Wallet
     {
         private Dictionary<CurrencyTypes, ReactiveVariable<int>> _currencies = new(); // словарь с валютами
 
+        private int _valueToSpend;
+        private int _valueToAdd;
+
         public WalletService(PlayerDataProvider playerDataProvider) 
         {
             playerDataProvider.RegisterWriter(this);// регистрируем себя в провайдере
-            playerDataProvider.RegisterReader(this);
+            playerDataProvider.RegisterReader(this);            
         }
 
         public List<CurrencyTypes> AvailableCurrencies => _currencies.Keys.ToList(); // св-во, для просмотра доступных нам валют
@@ -24,15 +27,15 @@ namespace Assets.HomeWork.Develop.CommonServices.Wallet
         public bool HasEnough(CurrencyTypes type, int amount)
             => _currencies[type].Value >= amount;                   // проверка, хватает ли в кашельке кол-во запрашиваемой валюты
 
-        public void Spend(CurrencyTypes type, int amount) // метод получения валюты из кошелька
+        public void Spend(CurrencyTypes type) // метод получения валюты из кошелька
         {
-            if (HasEnough(type, amount) == false)
+            if (HasEnough(type, _valueToSpend) == false)
                 throw new ArgumentException(type.ToString());
 
-            _currencies[type].Value -= amount;
+            _currencies[type].Value -= _valueToSpend;
         }
 
-        public void Add(CurrencyTypes type, int amount) => _currencies[type].Value += amount; // добавляем в кошелёк валюту
+        public void Add(CurrencyTypes type) => _currencies[type].Value += _valueToAdd; // добавляем в кошелёк валюту
 
         public void ReadFrom(PlayerData data) // здесь считываем данные из "PlayerData" и записываем в "_currencies"
         {
@@ -43,6 +46,9 @@ namespace Assets.HomeWork.Develop.CommonServices.Wallet
                 else
                     _currencies.Add(currency.Key, new ReactiveVariable<int>(currency.Value)); // если такой валюты нет, то добавляем новую валюту
             }
+
+            _valueToSpend = data.ValueToSpend;
+            _valueToAdd = data.ValueToAdd;
         }
 
         public void WriteTo(PlayerData data) // здесь наоборот считываем данные из "_currencies" и записываем в "PlayerData"

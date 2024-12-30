@@ -6,7 +6,7 @@ namespace Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders
     public abstract class DataProvider<TData> where TData : ISaveData // базовый класс данных,
                                                                       // работать может только с классами унаследованными от "ISaveData"
     {
-        private readonly ISaveLoadService _saveLoadService;// сервис загрузки, созран
+        private readonly ISaveLoadService _saveLoadService;// сервис загрузки, создан
 
         private List<IDataWrite<TData>> _writers = new();// список сервисов которым надо записать данные(сохранить)
         private List<IDataReader<TData>> _readers = new();//список сервисов которым надо считать данные
@@ -16,7 +16,7 @@ namespace Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders
             _saveLoadService = saveLoadService;
         }
 
-        private TData Data { get; set; }//  поле для класса данных, которыми будем работать
+        private TData Data { get; set; }//  поле для класса данных,с которыми будем работать
 
         public void RegisterWriter(IDataWrite<TData> writer)
         {

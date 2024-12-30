@@ -1,12 +1,15 @@
-﻿using Assets.HomeWork.Develop.CommonServices.AssetManagment;
+﻿using Assets.HomeWork.Develop.CommonServices.AccountingOfGameResult;
+using Assets.HomeWork.Develop.CommonServices.AssetManagment;
 using Assets.HomeWork.Develop.CommonServices.ConfigsManagment;
 using Assets.HomeWork.Develop.CommonServices.CoroutinePerformer;
 using Assets.HomeWork.Develop.CommonServices.DataManagment;
 using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
 using Assets.HomeWork.Develop.CommonServices.DI;
+using Assets.HomeWork.Develop.CommonServices.GameService;
 using Assets.HomeWork.Develop.CommonServices.LoadingScreen;
 using Assets.HomeWork.Develop.CommonServices.SceneManagment;
 using Assets.HomeWork.Develop.CommonServices.Wallet;
+using System;
 using UnityEngine;
 
 namespace Assets.HomeWork.Develop.EntryPoint
@@ -36,20 +39,36 @@ namespace Assets.HomeWork.Develop.EntryPoint
             RegisterWalletService(projectContainer);// регаем сервис кошелька
             RegisterConfigProviderService(projectContainer);// регаем загрузку конфигов
 
+            RegisterGameResultDataProvider(projectContainer);
+            RegisterGameResultService(projectContainer);// регаем сервис результата игры
+
+            RegisterGameDataProvider(projectContainer);// регаем провайдер данных для геймплэя
+            RegisterGameService(projectContainer);// регаем сервис для геёмплэя
 
             projectContainer.Initialize();// инициализируем, что бы создать регистрации которые должны быть созданны ещё до первого запроса
-
-
             // когда все глобальные регистрации прошли
             projectContainer.Resolve<ICoroutinePerformer>().StartPerform(_gameBootstrap.Run(projectContainer));//в "_gameBootstrap" через сервис корутины запустим Run и передадим
 
-        }        
+        }
 
         private void SetupAppSettings()
         {
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = 144;
         }
+
+        private void RegisterGameService(DIContainer container)
+        => container.RegisterAsSingle(c => new GameService(c.Resolve<GameDataProvider>())).NonLazy();
+
+        private void RegisterGameDataProvider(DIContainer container)
+        => container.RegisterAsSingle(c => new GameDataProvider(c.Resolve<ISaveLoadService>(), c.Resolve<ConfigsProviderService>()));
+
+        private void RegisterGameResultService(DIContainer сontainer)
+          => сontainer.RegisterAsSingle(c => new GameResultService(c.Resolve<GameResultsDataProvider>())).NonLazy();
+
+        private void RegisterGameResultDataProvider(DIContainer container)
+          => container.RegisterAsSingle(с => new GameResultsDataProvider(container.Resolve<ISaveLoadService>(), container.Resolve<ConfigsProviderService>()));
+        
 
         private void RegisterConfigProviderService(DIContainer container)
         => container.RegisterAsSingle(c => new ConfigsProviderService(c.Resolve<ResourcesAssetLoader>()));
