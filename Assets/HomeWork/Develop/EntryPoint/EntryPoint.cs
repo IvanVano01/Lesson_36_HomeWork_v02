@@ -41,8 +41,7 @@ namespace Assets.HomeWork.Develop.EntryPoint
 
             RegisterGameResultDataProvider(projectContainer);
             RegisterGameResultService(projectContainer);// регаем сервис результата игры
-
-            RegisterGameDataProvider(projectContainer);// регаем провайдер данных для геймплэя
+           
             RegisterGameService(projectContainer);// регаем сервис для геёмплэя
 
             projectContainer.Initialize();// инициализируем, что бы создать регистрации которые должны быть созданны ещё до первого запроса
@@ -58,10 +57,7 @@ namespace Assets.HomeWork.Develop.EntryPoint
         }
 
         private void RegisterGameService(DIContainer container)
-        => container.RegisterAsSingle(c => new GameService(c.Resolve<GameDataProvider>())).NonLazy();
-
-        private void RegisterGameDataProvider(DIContainer container)
-        => container.RegisterAsSingle(c => new GameDataProvider(c.Resolve<ISaveLoadService>(), c.Resolve<ConfigsProviderService>()));
+        => container.RegisterAsSingle(c => new GameSettingsService(c.Resolve<ConfigsProviderService>()));       
 
         private void RegisterGameResultService(DIContainer сontainer)
           => сontainer.RegisterAsSingle(c => new GameResultService(c.Resolve<GameResultsDataProvider>())).NonLazy();

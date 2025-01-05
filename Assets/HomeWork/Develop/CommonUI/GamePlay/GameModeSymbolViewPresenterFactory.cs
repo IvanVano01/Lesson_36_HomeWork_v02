@@ -1,4 +1,4 @@
-﻿using Assets.HomeWork.Develop.GamePlay;
+﻿using Assets.HomeWork.Develop.CommonServices.GameService;
 
 namespace Assets.HomeWork.Develop.CommonUI.GamePlay
 {
@@ -11,7 +11,7 @@ namespace Assets.HomeWork.Develop.CommonUI.GamePlay
             _onlyText = onlyText;
         }
 
-        public GameModeSymbolViewPresenter CreateGameModeSymbolViewPresenter(Game game)
-            => new GameModeSymbolViewPresenter(game, _onlyText);
+        public GameModeSymbolViewPresenter CreateGameModeSymbolViewPresenter(GeneratorRandomSymbolsService generatorRandomSymbolsService)
+            => new GameModeSymbolViewPresenter(generatorRandomSymbolsService, _onlyText);
     }
 }

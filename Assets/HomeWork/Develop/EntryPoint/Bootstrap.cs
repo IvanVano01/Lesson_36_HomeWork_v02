@@ -23,8 +23,7 @@ namespace Assets.HomeWork.Develop.EntryPoint
             container.Resolve<ConfigsProviderService>().LoadAll();// подгрузили конфиги
             
             container.Resolve<PlayerDataProvider>().Load();// подгружаем данные для игрока из конфигов
-            container.Resolve<GameResultsDataProvider>().Load();// данные результата игры из конфигов
-            container.Resolve<GameDataProvider>().Load();// данные для гейм плэя из конфигов
+            container.Resolve<GameResultsDataProvider>().Load();// данные результата игры из конфигов            
 
             yield return new WaitForSeconds(1.5f);// заглушка, имитирует инициализацию сервисов которые выше
 

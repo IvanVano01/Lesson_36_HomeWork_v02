@@ -1,5 +1,4 @@
 ﻿using Assets.HomeWork.Develop.CommonServices.AccountingOfGameResult;
-using Assets.HomeWork.Develop.CommonServices.AssetManagment;
 using Assets.HomeWork.Develop.CommonServices.DataManagment.DataProviders;
 using Assets.HomeWork.Develop.CommonServices.DI;
 using Assets.HomeWork.Develop.CommonServices.GameService;
@@ -7,7 +6,6 @@ using Assets.HomeWork.Develop.CommonServices.SceneManagment;
 using Assets.HomeWork.Develop.CommonServices.Wallet;
 using Assets.HomeWork.Develop.CommonUI.GamePlay;
 using Assets.HomeWork.Develop.GamePlay.UI;
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -31,8 +29,8 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
             Debug.Log($"Подружаем ресурсы для режима игры под номером: {gameplayInputArgs.GameMode}");
 
             Game game = _container.Resolve<Game>();
-            GameModeSymbolViewPresenter gameModeSymbolViewPresenter = _container
-                .Resolve<GameModeSymbolViewPresenterFactory>().CreateGameModeSymbolViewPresenter(game);
+            GameModeSymbolViewPresenter gameModeSymbolViewPresenter = _container.Resolve<GameModeSymbolViewPresenterFactory>().
+                CreateGameModeSymbolViewPresenter(_container.Resolve<GeneratorRandomSymbolsService>());
             gameModeSymbolViewPresenter.Enable();
 
 
@@ -64,9 +62,10 @@ namespace Assets.HomeWork.Develop.GamePlay.Infrastructure
 
             _container.RegisterAsSingle(c => new InputSymbolPresenterFactory());
 
-            _container.RegisterAsSingle(c => new GameModeFactory(c.Resolve<GameService>()));
+            _container.RegisterAsSingle(c => new GameModeFactory());
+            _container.RegisterAsSingle(c => new GeneratorRandomSymbolsService(_gameplayInputArgs.GameMode, c.Resolve<GameSettingsService>()));// регаем "GeneratorRandomSymbolsService"
 
-            _container.RegisterAsSingle(c => new Game(_gameplayInputArgs.GameMode, c.Resolve<GameService>())); // регаем "Game"
+            _container.RegisterAsSingle(c => new Game(c.Resolve<GeneratorRandomSymbolsService>())); // регаем "Game"
 
             _container.RegisterAsSingle(c => c.Resolve<InputSymbolPresenterFactory>()
             .CreateInputSymbolPresenter(c.Resolve<GamePlayUIRoot>().InputSymbolView, c.Resolve<Game>())).NonLazy();// регаем "CreateInputSymbol"
